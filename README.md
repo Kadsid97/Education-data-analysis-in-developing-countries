@@ -1,2 +1,2 @@
 # Education-data-analysis-in-developing-countries
-Data Quality Assessment &amp; spatial analysis of schooling patterns in West Africa. Using R to triangulate DHS, MICS and other datasets to track late enrollment risks for children aged 3–14. Combining TSE-level rigor with interactive viz to identify the persistence of learning gaps. Seeking to bridge the gap between raw data and educational policy
+I use R to analyze education data from DHS and MICS surveys in West Africa. My goal is to find where and why children (ages 3–14) are starting school late. I use my experience from the World Bank and my studies at TSE to turn raw data into clear maps and charts that help people make better decisions for schools.
