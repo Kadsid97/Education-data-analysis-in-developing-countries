@@ -8,11 +8,17 @@ This project is where I put together my technical skills and my interest in soci
 
 
 ### Why I am doing this project
-I believe education is the most important tool for equal opportunity. Before starting as a freelance analyst, I worked for 3 years as a data analyst including 2 years in **Global Health** as a consultant for the **World Bank (GFF)**. I mostly worked on maternal and child health data in times of crisis.
-  
-I launched this project because of a specific "evidence gap" in West Africa. Research by **Whitehead et al. (2024)** shows that in Côte d'Ivoire, many children start school very late. In their study of children in grades 1 to 6, they found ages ranging all the way from 5 to 15 years old. This huge "age-for-grade" variation is a major reason why literacy and numeracy skills vary so much in public schools.
-  
-I want to use my data skills to see if these same patterns exist in Niger, Nigeria, Benin, and Ghana. If we can identify where kids are starting late, we can help organizations design "behavioral nudges" to encourage parents to enroll children on time. My goal is to show how data can help give every child a fairer start in life
+I believe education is the most important tool for equal opportunity. Before starting as a freelance analyst, I worked for 3 years in **Global Health** as a consultant for the **World Bank (GFF)**.
+
+I launched this project because of a specific problem: **late enrollment**. In West Africa, many children start school much later than the official age. I want to show that this isn't just a small delay; it is a "hidden" driver of bigger problems.
+
+Based on recent evidence in Côte d'Ivoire (like **Whitehead et al., 2024**), starting late creates a huge age gap in the same classroom. My goal with this analysis is to show how these gaps lead to:
+
+* **Lower Literacy & Numeracy**: When ages are too different in one class, teaching becomes difficult and learning outcomes drop.
+
+* **Higher Dropout Rates**: Children who start late are more likely to leave school before finishing.
+
+I am using my data skills to track these patterns in **Côte d'Ivoire, Senegal, Niger, Nigeria, Benin, and Ghana**. By showing where the "enrollment bottlenecks" are, we can help design better policies to give every child a fairer start
 
 ---
 
@@ -39,7 +45,7 @@ I use a structured workflow to make sure my results are reliable and easy to fol
     
 * **02_Presentations/**:
     * **/visualization**: This is for the charts and (interactive) maps I create to show the data clearly. I use libraries like ggplot2 and leaflet to make the data accessible for policy-makers.
-    * **/reports**: I use RMarkdown to create stakeholder-ready documents that combine my code with clear explanations.
+    * **/Reports**: I use RMarkdown to create stakeholder-ready documents that combine my code with clear explanations.
     
 * **Country_Folders/** (e.g., `Cote_d_Ivoire/`):
     * **/01_Raw**: This stays empty because I don't share the raw DHS data publicly for privacy reasons.
