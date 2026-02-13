@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Mapping Education Access in West Africa
 ## Analysis of Schooling Pathways using DHS, MICS and other data sources
 
