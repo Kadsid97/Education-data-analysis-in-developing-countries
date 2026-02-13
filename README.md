@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Mapping Education Access in West Africa
 ## Analysis of Schooling Pathways using DHS, MICS and other data sources
 
@@ -64,3 +65,4 @@ To respect the rules of DHS and MICS, I do not share the raw data here. If you w
 ---
 
 **Kadidja Sidibé** *Freelance Data Analyst | Former World Bank Consultant* | *MSc Public Policy & Development (Toulouse School of Economics / TSE)* | *📧 kad.sdb@gmail.com*
+
