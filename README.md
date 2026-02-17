@@ -6,7 +6,12 @@ This project is where I put together my technical skills and my interest in soci
 
 ---
 
+### What is this project about?
+In Cote d’Ivoire, many children start school late which lead to great age-for-grade variations. In my study, I look at children from grade 1 to 6 (usually aged between 5 and 15). 
 
+This variability is a big problem because it creates disparities in literacy and numeracy skills in public schools. If we can understand why parents enroll children late, we can help organizations like Ed Lab design better "behavioral nudges" (like social recognition) to shift social norms and help children get a fairer start in life.
+
+---
 
 ### Why I am doing this project
 I believe education is the most important tool for equal opportunity. Before starting as a freelance analyst, I worked for 3 years in **Global Health** as a consultant for the **World Bank (GFF)**.
@@ -20,6 +25,13 @@ Based on recent evidence in Côte d'Ivoire (like **Whitehead et al., 2024**), st
 * **Higher Dropout Rates**: Children who start late are more likely to leave school before finishing.
 
 I am using my data skills to track these patterns in **Côte d'Ivoire, Senegal, Niger, Nigeria, Benin, and Ghana**. By showing where the "enrollment bottlenecks" are, we can help design better policies to give every child a fairer start
+
+---
+
+### My Research Questions
+I want to explore two things that are not often discussed in West Africa:
+1. **Birth Registration:** Does not having a birth certificate (hv140) block children from starting school at age 6?
+2. **Maternal Empowerment:** Does a mother’s bargaining power (v743) in the house help a child start school on time?
 
 ---
 
