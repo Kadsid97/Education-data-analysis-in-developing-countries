@@ -64,5 +64,9 @@ To respect the rules of DHS and MICS, I do not share the raw data here. If you w
 
 ---
 
+**Project Status**: Currently focusing on the Côte d'Ivoire 2021 DHS dataset as a pilot analysis. The scripts are designed to be scalable toBurkina Faso, Ghana, Niger, Nigeria or Senegal in the next phase.
+
+---
+
 **Kadidja Sidibé** *Freelance Data Analyst | Former World Bank Consultant* | *MSc Public Policy & Development (Toulouse School of Economics / TSE)* | *📧 kad.sdb@gmail.com*
 
