@@ -43,7 +43,7 @@ hr_sel <- hr %>% select(hv001, hv002, hv021, hv022, hv024, hv025, hv009, hv270,
 
 
 
-# Women (IR) - related to investigate the link between maternal education and empowerment
+# Women (IR) - to investigate the link between maternal education and empowerment
 ir_sel <- ir %>% select(caseid, v001, v002, v003, v106, v133, v155, v714, 
                         v743a, v743b, v743c, v743d, v743e, v743f)
 
@@ -58,7 +58,7 @@ kr_sel <- kr %>% select(v001, v002, bidx, b4, b8, b5, b7,
 
 ## Merging the datasets
 
-# I merge PR and HR first to get the base "Child + Home" dataset. It also avoid smistakes in matching mothers and children
+# I merge PR and HR first to get the base "Child + Home" dataset. It also avoids mistakes in matching mothers and children
 # This covers my main focus: school attendance and age-for-grade.
 #  hv001/hv002 are the unique household identifier.
 

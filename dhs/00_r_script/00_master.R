@@ -45,6 +45,10 @@ if(length(uninstalled_packages)) {
 # Load all packages
 lapply(required_packages, library, character.only = TRUE)
 
+# Check if 'here' is loaded. If not, load it.
+if (!require("here")) install.packages("here")
+library(here)
+
 ###--------- Country, year of focus and data source
 
 country  <- "Cote_d_Ivoire" 
@@ -52,7 +56,7 @@ survey_year   <- 2021
 data_source   <- "dhs"
 
 # Defining the path
-path_dhs <- getwd()
+path_dhs <- here()
 
 
 ###--------- Set global aesthetics
@@ -81,15 +85,16 @@ theme_set(theme_educ())
 
 ###--------- Run scripts sequentially
 
-source(file.path("00_r_script", "01_import.R"))
-source(file.path("00_r_script", "02_dqa.R"))
-source(file.path("00_r_script", "03_data_cleaning.R"))
-source(file.path("00_r_script", "04_data_analysis.R"))
-source(file.path("00_r_script", "05_data_visualization.R"))
+source(file.path(path_dhs, "dhs", "00_r_script", "01_import.R"))
+source(file.path(path_dhs, "dhs", "00_r_script", "02_dqa.R"))
+source(file.path(path_dhs, "dhs", "00_r_script", "03_data_cleaning.R"))
+source(file.path(path_dhs, "dhs", "00_r_script", "04_data_analysis.R"))
+source(file.path(path_dhs, "dhs", "00_r_script", "05_data_visualization.R"))
 
 #to generate the report doc
-rmarkdown::render(file.path(path_dhs, "02_Presentations", "Reports", "Rmd visualisation study sample.Rmd"))
+rmarkdown::render(file.path(path_dhs, "dhs",  "02_Presentations", "Reports", "Rmd visualisation study sample.Rmd"))
 
 
 message("All scripts executed")
+
 
