@@ -163,7 +163,53 @@ study_sample <- pr_hr_clean %>%
 # decimals in the data files)
 
 
+# Now I create the age_gap indicator for this specific sample bearing in 
+# my mind that in most African countries, the official entry age is 6
 
+# First, check if hv108 has the numbers we need
+table(study_sample$hv108, useNA = "always") # it has!!
+
+# Second given that it has numbers from 0 to 18 let's create the numeric version 
+# of the years of education with this simple logic: If a 10-year-old has only 2 
+# years of school, they are late. Which is equivalent to this formula : 
+# Formula: (Age - 6) > Years Completed
+
+study_sample_clean <- study_sample %>%
+  mutate(
+    educ_years = as.numeric(as.character(hv108)),
+    
+    age_gap = case_when(
+      hv105 < 6 ~ 0,
+      is.na(hv105) | is.na(educ_years) ~ NA_real_,
+      (hv105 - 6) > educ_years ~ 1,
+      TRUE ~ 0
+    )
+  )
+
+# Let's check the result
+table(study_sample_clean$age_gap, useNA = "always")
+
+
+
+### Creating simple indicators for the regression models
+
+study_sample_clean <- study_sample_clean %>%
+  mutate(
+    # dummy var for sex -> 1 for female
+    female  = ifelse(hv104 == "female", 1, 0),
+    
+    # dummy for type of place (Urban/Rural) -> 1 for urban
+    urban   = ifelse(hv025 == "urban", 1, 0),
+    
+    # Wealth -> grouping the bottom two quintiles (poor/poorest)
+    poor_hh = ifelse(hv270 %in% c("poorest", "poorer"), 1, 0)
+  )
+
+# Checking if the recoding worked
+table(study_sample_clean$hv104, study_sample_clean$female)
+table(study_sample_clean$hv025, study_sample_clean$urban)
+table(study_sample_clean$hv270, study_sample_clean$poor_hh)
+                              
 
 ### Code to print pretty country names in the visuals
 
@@ -181,13 +227,14 @@ format_country_name <- function(country) {
 
 country_display <- format_country_name(country)
 country_display
-                              
+
+
 # ---------------------#
 
 ### 6) SAVE THE FULLY CLEANED DATASET
 
 # ---------------------#
-write_csv(study_sample, file.path(path_dhs, "dhs", country,"02_Clean", paste0(country, "_study_sample.csv")))
+write_csv(study_sample_clean, file.path(path_dhs, "dhs", country,"02_Clean", paste0(country, "_study_sample_clean.csv")))
  
 
 
