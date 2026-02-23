@@ -29,60 +29,6 @@ pr_hr <- pr_hr_raw
 #                    DATA EXPLORATION AND SAMPLE SELECTION 
 #------------------------------------------------------------------------------#
 
-### SELECTING THE SAMPLE
-
-
-# Code to print pretty country names in the visuals
-format_country_name <- function(country) {
-  # replace underscores with spaces
-  name <- gsub("_", " ", country)
-  
-  # replace special cases
-  # update gradually if needed
-  name <- ifelse(tolower(name) == "cote d ivoire", "Côte d'Ivoire", name)
-  
-  return(name)
-}
-
-country_display <- format_country_name(country)
-country_display
-
-# Storing age interval info using UNESCO and +/- years buffer)
-
-age_interv <- list(
-  Preschool = 2:6,
-  Primary = 4:13,
-  Lower_secondary = 10:16,
-  Upper_secondary = 13:19
-)
-
-# Create a new variable 'education_level' that I will use to select my sample and 
-# assign levels (the goal no code change even if I add new countries, considers
-#early/late starters and repetition)
-
-pr_hr <- pr_hr %>%
-  mutate(
-    education_level = case_when(
-      hv105 %in% age_interv$Preschool ~ "Preschool",
-      hv105 %in% age_interv$Primary ~ "Primary",
-      hv105 %in% age_interv$Lower_secondary ~ "Lower Secondary",
-      hv105 %in% age_interv$Upper_secondary ~ "Upper Secondary",
-      TRUE ~ "Other"
-    )
-  )
-
-# Quick check
-table(pr_hr$education_level)
-
-#Selecting the study sample (preschool and primary)
-
-study_sample <- pr_hr %>%
-  filter(education_level %in% c("Preschool", "Primary")) %>%
-  mutate(weight = hv005 / 1000000) # re-scaling the DHS weight to its 
-# proper numeric scale (cf DHS convention to store weights as integers to avoid 
-# decimals in the data files)
-
-
 
 # ---------------
 ### STORING LABELS FOR LATER USE 
@@ -97,18 +43,14 @@ selected_vars_viz <- c(
   "hv104","hv105","hv106","hv107","hv108","hv109", "hv121", "hv140", # Member vars
   "hv021", "hv022", "hv024","hv025", "hv009","hv270", # Survey/HH vars
   "hv201","hv204", "hv205","hv206","hv219","hv220", "hv237", # WASH/Health/Other
-  "education_level", "weight" # Derived
+  "education_level"
 )
 
 
 # Extract and clean labels
 var_labels_viz <- sapply(selected_vars_viz, function(v) {
-  lbl <- attr(study_sample[[v]], "label")
-  if (is.null(lbl)) {
-    if (v == "education_level") return("Education Level")
-    if (v == "weight") return("Survey Weight")
-    return(v)
-  }
+  lbl <- attr(pr_hr[[v]], "label")
+  
   
   # shortening long DHS strings for visuals
   lbl <- str_replace_all(lbl, c(
@@ -130,14 +72,14 @@ var_labels_viz_df <- tibble(
 
 # Region labels (hv024) (to make sure we get the names of the regions instead of the numbers)
 region_labels <- tibble(
-  code = as.numeric(study_sample$hv024),
-  name = names(attr(study_sample$hv024, "labels"))[match(as.numeric(study_sample$hv024), attr(study_sample$hv024, "labels"))]
+  code = as.numeric(pr_hr$hv024),
+  name = names(attr(pr_hr$hv024, "labels"))[match(as.numeric(pr_hr$hv024), attr(pr_hr$hv024, "labels"))]
 )
 
 # Type of place labels (hv025) (to make sure we get urban rural instead of the number)
 place_labels <- tibble(
-  code = as.numeric(study_sample$hv025),
-  name = names(attr(study_sample$hv025, "labels"))[match(as.numeric(study_sample$hv025), attr(study_sample$hv025, "labels"))]
+  code = as.numeric(pr_hr$hv025),
+  name = names(attr(pr_hr$hv025, "labels"))[match(as.numeric(pr_hr$hv025), attr(pr_hr$hv025, "labels"))]
 )
 
 
@@ -152,11 +94,11 @@ place_labels <- tibble(
 
 
 # Identify duplicates
-duplicates <- study_sample %>%
+duplicates <- pr_hr %>%
   janitor::get_dupes(hv001, hv002, hvidx) 
 
 #Get total count for the percentage calculation
-total_obs <- nrow(study_sample)
+total_obs <- nrow(pr_hr)
 
 # Summarize results in a clean table
 if (nrow(duplicates) > 0) {
@@ -184,22 +126,21 @@ write_csv(duplicates_summary, file.path(path_dhs, "dhs", "01_Output","DQA","Tabl
 #------------------------ #
 
 # Define variables to exclude from outlier checks.
-# These are: IDs, weights, and any variable whose primary role is joining.
+# These are: IDs, and any variable whose primary role is joining.
 vars_to_exclude <- c(
-  "hv001", "hv002", "hv005", "hv007", "hv021", "hv022", "hvidx", # Survey IDs/Weights
-  "weight" 
+  "hv001", "hv002", "hv005", "hv007", "hv021", "hv022", "hvidx" # Survey IDs/Weights
 )
 
 
 
-# 2. Get the list of numeric variables to analyze
-numeric_vars <- study_sample %>%
+# Define the list of numeric variables to analyze
+numeric_vars <- pr_hr %>%
   select(where(is.numeric)) %>%
   select(-any_of(vars_to_exclude)) %>%
   names()
 
-# 3. Calculate Outliers and Summary Stats
-outliers_summary <- study_sample %>%
+# Calculate Outliers and Summary Stats
+outliers_summary <- pr_hr %>%
   select(all_of(numeric_vars)) %>%
   summarise(across(everything(), list(
     min    = ~min(., na.rm = TRUE),
@@ -220,10 +161,10 @@ outliers_summary <- study_sample %>%
     outliers_detected = ifelse(min < lower_bound | max > upper_bound, "Yes", "No")
   )
 
-# 4. Identify outlier records with IDs
+# Identify outlier records with IDs
 outliers_vars <- outliers_summary %>% pull(variable)
 
-outliers_records <- study_sample %>%
+outliers_records <- pr_hr %>%
   select(hv001, hv002, hvidx, all_of(outliers_vars)) %>%
   pivot_longer(
     cols = all_of(outliers_vars), 
@@ -236,7 +177,7 @@ outliers_records <- study_sample %>%
     # This includes Age, Counts, and categorical codes (which are always 0+)
     can_be_negative = FALSE, 
     
-    # Fix: Ensure bound is at least 0
+    # Making sure the bound is at least 0
     analytic_lower_bound = ifelse(!can_be_negative & lower_bound < 0, 0, lower_bound),
     
     is_outlier = case_when(
@@ -265,10 +206,10 @@ perform_standardized_range_check <- function(data, constraints_list, special_cod
   
   vars_to_check <- names(constraints_list)
   
-  # Use purrr::map_df for a cleaner loop and binding
+  # Here, I am using purrr::map_df for a cleaner loop and binding
   map_df(vars_to_check, function(var) {
     
-    # --- 1. CLEANING STEP ---
+    # CLEANING STEP 
     # Retrieve the variable from the dataset
     var_data <- data[[var]]
     
@@ -283,7 +224,7 @@ perform_standardized_range_check <- function(data, constraints_list, special_cod
     
     if (nrow(data_clean) == 0) return(NULL) 
     
-    # --- 2. CHECKING STEP ---
+    # CHECKING THE TYPES
     if (check_type == "numeric") {
       limits <- constraints_list[[var]]
       
@@ -324,7 +265,7 @@ perform_standardized_range_check <- function(data, constraints_list, special_cod
 
 
 # Define plausible ranges to compute the range constraint checks based on DHS  standards
-# (YOUR num_range_constraints LIST GOES HERE, UNCHANGED)
+
 num_range_constraints <- list(
   #Identifiers (numeric/integer)
   hv001 = c(1, Inf),    # Cluster number (PSU)
@@ -344,7 +285,7 @@ num_range_constraints <- list(
   hv109 = c(0, 30)     # Years of educ completed by hh head
 )
 # Define allowed values for categorical variables based on factor levels
-# (YOUR categorical_constraints LIST GOES HERE, UNCHANGED)
+
 categorical_constraints <- list(
   hv106 = c(0, 1, 2, 3, 4, 5, 8, 9),      # Highest educ level attained -> 0:None, 1:Primary , 2:Secondary, 3:Higher, 4: Vocational/Technical, 5: , 8:Don't Know, 9:Missing
   hv140 = c(0, 1,2,3,7,8,9),           # Birth certificate status -> 0:No, 1:Seen, 2:Not seen, 7:Other,  8:Don't Know, 9:Missing
@@ -357,7 +298,7 @@ categorical_constraints <- list(
   hv219 = 1:2,           # Sex of household head (male/female)
   hv024 = 1:50           # Region code
 )
-# Known DHS special codes for missing/N/A ---
+# Known DHS special codes for missing/N/A 
 special_codes <- list(
   hv105 = c(98, 99),
   hv220 = c(98, 99),
@@ -375,7 +316,7 @@ special_codes <- list(
 
 # Check range issues for NUMERIC variables using the new function
 range_issues_numeric <- perform_standardized_range_check(
-  data = study_sample, # Use the converted data for consistency
+  data = pr_hr, # Use the converted data for consistency
   constraints_list = num_range_constraints,
   special_codes_list = special_codes,
   check_type = "numeric"
@@ -384,7 +325,7 @@ range_issues_numeric <- perform_standardized_range_check(
 
 # Check range issues for CATEGORICAL variables using the new function
 range_issues_categorical <- perform_standardized_range_check(
-  data = study_sample,
+  data = pr_hr,
   constraints_list = categorical_constraints,
   special_codes_list = special_codes,
   check_type = "categorical"
@@ -416,8 +357,8 @@ write_csv(range_issues, file.path(path_dhs, "dhs",  "01_Output", "DQA", "Tables"
 ## Creating the structure of the variable table
 
 var_table <- data.frame(
-  variable = names(study_sample),
-  current_type = sapply(study_sample, function(x) class(x)[1]),
+  variable = names(pr_hr),
+  current_type = sapply(pr_hr, function(x) class(x)[1]),
   key_for_DQA = NA,
   expected_type = NA,
   Purpose = NA,
@@ -435,7 +376,7 @@ var_table <- var_table %>%
       TRUE ~ "Secondary Analysis / Robustness Check"
     ), 
     variable_name = sapply(variable, function(x) {
-      lbl <- attr(study_sample[[x]], "label")
+      lbl <- attr(pr_hr[[x]], "label")
       if (is.null(lbl)) lbl <- "Label not defined"
       lbl
     }),
@@ -476,25 +417,24 @@ var_table <- var_table %>%
       variable == "hv220" ~ "Age of HH head: control variable",
       variable == "hv204" ~ "Distance to water: more time fetching water means less school time",
       variable == "education_level" ~ "Recoded version of hv106 for the final model",
-      variable == "weight" ~ "Final weight used for analysis (hv005/1,000,000)",
       TRUE ~ NA_character_
     )
   ) %>%
   select(variable, variable_name, current_type, expected_type, key_for_DQA, Notes, convert_to_factor)   # Reorder columns
 
 
-## Detect and mark haven-labelled variables ---
-var_table$convert_to_factor <- sapply(names(study_sample), function(x) {
-  if (is.labelled(study_sample[[x]])) {
+## Detect and mark haven-labelled variables
+var_table$convert_to_factor <- sapply(names(pr_hr), function(x) {
+  if (is.labelled(pr_hr[[x]])) {
     "Haven-labelled → convert to factor"
-  } else if (is.factor(study_sample[[x]])) {
+  } else if (is.factor(pr_hr[[x]])) {
     "Already factor"
   } else {
     "No conversion needed"
   }
 })
 
-## Check type mismatches (storage vs expected concept) ---
+## Check type mismatches (storage vs expected concept)
 var_table <- var_table %>%
   mutate(
     type_mismatch = case_when(
@@ -527,12 +467,9 @@ cat(paste(change_to_numeric, collapse = ", "), "\n\n")
 
 
 
-
-
-
 ###  convert and store results in a dataset
 
-study_sample_with_conversion <- study_sample %>%
+pr_hr_with_conversion <- pr_hr %>%
   mutate(across(all_of(change_to_factor), ~ as_factor(.x))) %>%
   mutate(across(all_of(change_to_numeric), ~ as.numeric(as.character(.x)))) %>%
 
@@ -548,12 +485,12 @@ mutate(
 
 # quick check if conversion was done correctly 
 
-class(study_sample_with_conversion$hv121)
-class(study_sample_with_conversion$hv204)
+class(pr_hr_with_conversion$hv121)
+class(pr_hr_with_conversion$hv204)
 
 var_table <- var_table %>%
   mutate(
-    type_after_conversion = sapply(variable, function(x) class(study_sample_with_conversion[[x]])[1]),
+    type_after_conversion = sapply(variable, function(x) class(pr_hr_with_conversion[[x]])[1]),
     # Define OK if types match conceptually (factor ≈ labelled/factor, numeric ≈ numeric/integer)
     consistency = case_when(
       expected_type == "factor" & type_after_conversion == "factor" ~ "OK",
@@ -563,7 +500,7 @@ var_table <- var_table %>%
   )
 # export and store results in csv
 
-write.csv(var_table, file.path(path_dhs, "dhs",  "01_Output", paste0("study_sample_", country, "_variable_table_with_data_type.csv")),
+write.csv(var_table, file.path(path_dhs, "dhs",  "01_Output", paste0("pr_hr_", country, "_variable_table_with_data_type.csv")),
           row.names = FALSE)
 saveRDS(var_table, file.path(path_dhs, "dhs",  "02_Presentations", "Visualization",  "Tables", paste0(country, "_var_table.rds")))
 
@@ -595,25 +532,25 @@ saveRDS(research_var_table, file.path(path_dhs, "dhs",  "02_Presentations", "Vis
 
 
 
-# keeping the data conversion changes for the rest of the data exploration
-
 # ------------------------ #
 
 ### 5) MISSINGNESS CHECKS
 
 # ------------------------ #
 
-# --- Diagnostic to assess missingness considering DHS special codes
-# 1. Exclude design vars i.e. IDs, strata, weights
-design_vars <- c("hv001", "hv002", "hv005", "hv021", "hv022", "hvidx", "weight")
+### Diagnostic to assess missingness considering DHS special codes
+# Exclude design vars i.e. IDs, strata, weight
+design_vars <- c("hv001", "hv002", "hv005", "hv021", "hv022", "hvidx")
 
-# 2. Run the check
-special_code_checks <- study_sample_with_conversion %>%
+# Run the check
+special_code_checks <- pr_hr_with_conversion %>%
+  
   # Exclude IDs/Weights so we don't get false positives
   select(-all_of(design_vars)) %>%
   mutate(across(everything(), as.character)) %>%
   pivot_longer(everything(), names_to = "variable", values_to = "value") %>%
-  # Filter for numeric codes OR common DHS text labels
+  
+  # Filter on common DHS text labels
   filter(value %in% c("94", "95", "96", "97", "98", "99", 
                       "994", "995", "996", "997", "998", "999",
                       "9994", "9995", "9996", "9997", "9998", "9999") |
@@ -629,7 +566,7 @@ print(special_code_checks)
 # Missingness check -----
 fun_missingness_checks <- function(data, group_var) {
   
-  # Define variables where 94, 95, 96 are REAL numbers (Age, HH size, etc.)
+  # variables where 94, 95, 96 are REAL numbers (Age, HH size, etc.)
   age_and_count_vars <- c("hv105", "hv220", "hv009", "hv012", "hv013")
   
   missing_data <- data %>%
@@ -643,7 +580,7 @@ fun_missingness_checks <- function(data, group_var) {
                  sum(is.na(.) | val_char %in% c("98", "99", "998", "999") | 
                        str_detect(tolower(val_char), "don't know|missing"))
                } 
-               # Logic B: For everything else, include 94, 95, 97 etc.
+               # Logic B: For everything else, we include 94, 95, 97 etc.
                else {
                  sum(is.na(.) | val_char %in% c("94", "95", "97", "98", "99", "994", "995", "997", "998", "999") | 
                        str_detect(tolower(val_char), "don't know|missing|inconsistent|refused"))
@@ -669,13 +606,13 @@ fun_missingness_checks <- function(data, group_var) {
 # A) NATIONAL MISSINGNESS (no grouping)
 
 
-missingness_national <- study_sample_with_conversion %>%
+missingness_national <- pr_hr_with_conversion %>%
   mutate(total = "National") %>% # Create a temp column for easy grouping
   fun_missingness_checks(group_var = "total")
 
 # B. MISSINGNESS BY PLACE OF RESIDENCE (hv025)
 # This will show if NAs or 'Don't knows' are more common in Rural vs Urban areas
-missingness_by_residence <- study_sample_with_conversion %>%
+missingness_by_residence <- pr_hr_with_conversion %>%
   fun_missingness_checks(group_var = "hv025")
 
 # Saving the results in a table
@@ -698,7 +635,7 @@ missingness_by_residence <- missingness_by_residence %>%
   mutate(
     variable_label = factor(variable, levels = names(labels_map), labels = labels_map),
     variable_label_wrapped = str_wrap(variable_label, width = 20),
-    place_name = factor(hv025, labels = names(attr(study_sample$hv025, "labels")))
+    place_name = factor(hv025, labels = names(attr(pr_hr$hv025, "labels")))
   )
 
 write.csv(
@@ -713,7 +650,7 @@ saveRDS(missingness_by_residence,
 
 
 # C) MISSINGNESS BY REGION (hv024)
-missingness_by_region <- study_sample_with_conversion %>%
+missingness_by_region <- pr_hr_with_conversion %>%
   fun_missingness_checks(group_var = "hv024")
 
 # Adding variables names and get readable labels
@@ -723,7 +660,7 @@ missingness_by_region <- missingness_by_region %>%
   mutate(
     variable_label = factor(variable, levels = names(labels_map_region), labels = labels_map_region),
     variable_label_wrapped = str_wrap(variable_label, width = 20),
-    place_name = factor(hv024, labels = names(attr(study_sample$hv024, "labels")))
+    place_name = factor(hv024, labels = names(attr(pr_hr$hv024, "labels")))
   )
 write.csv(
   missingness_by_region,
@@ -773,7 +710,7 @@ fun_completeness_checks <- function(data, group_var = NULL) {
 
 #A) NATIONAL COMPLETENESS (no grouping)
 
-completeness_national <- study_sample_with_conversion %>%
+completeness_national <- pr_hr_with_conversion %>%
   fun_completeness_checks() %>%
   arrange(completeness_percent) %>% select(-group_col)
 
@@ -784,7 +721,7 @@ write_csv(completeness_national, file.path(path_dhs, "dhs",  "01_Output","DQA","
 
 #B) Completeness by variable and region 
 
-completeness_by_region <- study_sample_with_conversion %>%
+completeness_by_region <- pr_hr_with_conversion %>%
   fun_completeness_checks(group_var = "hv024") %>%
   #creating the numeric version of hv024 for the join as currently sotred as a factor
   mutate(hv024_num = as.numeric(hv024)) %>%
