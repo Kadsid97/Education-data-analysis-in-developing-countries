@@ -174,26 +174,32 @@ table(study_sample$hv108, useNA = "always") # it has!!
 # years of school, they are late. Which is equivalent to this formula : 
 # Formula: (Age - 6) > Years Completed
 
-study_sample_clean <- study_sample %>%
+# study_sample_clean <- study_sample %>%
+#   mutate(
+#     educ_years = as.numeric(as.character(hv108)),
+#     
+#     age_gap = case_when(
+#       hv105 < 6 ~ 0,
+#       is.na(hv105) | is.na(educ_years) ~ NA_real_,
+#       (hv105 - 6) > educ_years ~ 1,
+#       TRUE ~ 0
+#     )
+#   )
+
+study_sample <- study_sample %>%
   mutate(
     educ_years = as.numeric(as.character(hv108)),
-    
-    age_gap = case_when(
-      hv105 < 6 ~ 0,
-      is.na(hv105) | is.na(educ_years) ~ NA_real_,
-      (hv105 - 6) > educ_years ~ 1,
-      TRUE ~ 0
-    )
+    age_gap = ifelse((hv105 - 6) > educ_years, 1, 0)
   )
 
 # Let's check the result
-table(study_sample_clean$age_gap, useNA = "always")
+table(study_sample$age_gap, useNA = "always")
 
 
 
 ### Creating simple indicators for the regression models
 
-study_sample_clean <- study_sample_clean %>%
+study_sample_clean <- study_sample %>%
   mutate(
     # dummy var for sex -> 1 for female
     female  = ifelse(hv104 == "female", 1, 0),
