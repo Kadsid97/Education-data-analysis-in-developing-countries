@@ -20,8 +20,8 @@ required_packages <- c(
   # Import & cleaning
   "haven", "dplyr", "tidyr", "readr", "tibble", "janitor", "forcats", "stringr", "tidyverse", "labelled",
   
-  # Statistics & survey Design
-  "summarytools", "naniar", "survey", "srvyr", "knitr", "kableExtra",
+  # Statistics (including weighted correlation matrix) & survey Design
+  "summarytools", "naniar", "survey", "srvyr", "knitr", "kableExtra", "weights",
   
   # Visualization
   "ggplot2", "RColorBrewer", "scales", "ggcorrplot", "viridis", "plotly",
